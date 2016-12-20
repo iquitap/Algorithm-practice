@@ -1,0 +1,101 @@
+#include <iostream>
+#include <stdio.h>
+#include <algorithm>
+#include <vector>
+#include <string.h>
+#include <set>
+
+#define MAX 100000+10
+#define pb push_back
+#define mem(a) memset(a,0,sizeof(a))
+using namespace std;
+typedef vector<int> Ve;
+vector<Ve> Edge(MAX);
+int c[MAX], a[MAX];
+int Left[MAX], Right[MAX];
+int n;
+int cot = 1;
+void init()
+{
+	mem(Left);
+	mem(Right);
+	mem(c);
+	for (int i = 0; i< MAX; i++)
+		Edge[i].clear();
+}
+int lowbit(int x)
+{
+	return x&(-x);
+}
+void update(int x, int delta)
+{
+
+	while (x <= n)
+	{
+		c[x] += delta;
+		x += lowbit(x);
+	}
+}
+int getsum(int x)
+{
+	int ans = 0;
+	while (x>0)
+	{
+		ans += c[x];
+		x -= lowbit(x);
+	}
+	return ans;
+}
+void dfs(int node)
+{
+	Left[node] = cot;
+	for (int i = 0; i < Edge[node].size(); i++)
+	{
+		cot += 1;
+		dfs(Edge[node][i]);
+	}
+	Right[node] = cot;
+}
+int main()
+{
+	int u, v;
+	int M;
+	char ch;
+	int x;
+	init();
+	scanf("%d", &n);
+	for (int i = 0; i < n - 1; i++)
+	{
+		scanf("%d%d", &u, &v);
+		Edge[u].pb(v);
+	}
+	dfs(1);
+	for (int i = 1; i <= n; i++)
+	{
+		update(i, 1);
+		a[i] = 1;
+	}
+	scanf("%d", &M);
+	for (int i = 0; i < M; i++)
+	{
+
+		//scanf("%c%d", &ch, &x);
+		cin >> ch >> x;
+		if (ch == 'Q')
+		{
+			printf("%d\n", getsum(Right[x]) - getsum(Left[x] - 1));
+		}
+		else
+		{
+			/*a[x] = -a[x];
+			update(x, a[x]);*/
+			if (a[x])
+				update(Left[x], -1);
+			else
+				update(Left[x], 1);
+			a[x] = !a[x];
+		}
+	}
+	//getchar();
+	return 0;
+}
