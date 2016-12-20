@@ -1,0 +1,91 @@
+//#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <algorithm>
+#include <vector>
+#include <string.h>
+#include <set>
+
+#define MAX 20000+10
+#define mem(a) memset(a,0,sizeof(a))
+#define LL long long
+using namespace std;
+
+struct _cow
+{
+	int t;
+	int x;
+}cow[MAX];
+LL c[MAX], a[MAX];
+LL result = 0;
+LL Left, Right;
+int n;
+bool cmp(_cow a, _cow b)
+{
+	return a.t < b.t;
+}
+void init()
+{
+	for (int i = 0; i<MAX; i++)
+	{
+		cow[i].t = 0;
+		cow[i].x = 0;
+	}
+	mem(a);
+	mem(c);
+}
+int lowbit(int x)
+{
+	return x&(-x);
+}
+void update(LL l[], int x, int delta)
+{
+	while (x <= MAX)
+	{
+		l[x] += delta;
+		x += lowbit(x);
+	}
+}
+LL getSum(LL l[], int x)
+{
+	LL ans = 0;
+	while (x>0)
+	{
+		ans += l[x];
+		x -= lowbit(x);
+	}
+	return ans;
+}
+
+LL sum(LL l[], int from, int to)
+{
+	return getSum(l, to) - getSum(l, from);
+}
+int main()
+{
+	int v, x;
+	init();
+	scanf("%d", &n);
+	for (int i = 0; i < n; i++)
+	{
+		scanf("%d%d", &cow[i].t, &cow[i].x);
+	}
+	sort(cow, cow + n, cmp);	//以音量从小到大排序
+	for (int i = 0; i < n; i++)
+	{
+		v = cow[i].t;
+		x = cow[i].x;
+		Left = sum(a, 0, x - 1);
+		Right = sum(a, x, MAX - 1);
+		result += v*(x*(Left - Right) + sum(c, x, MAX) - sum(c, 0, x)); //保证当前音量为最大
+		//printf("x*(left - right)=%d left_sum=%d right_sum=%d result=%d temp=%d\n", x*(left - right), sum(c, 0, x - 1), sum(c, x, MAX), result, v*(x*(left - right) + sum(c, x, MAX) - sum(c, 1, x)));
+		update(a, x, 1);
+		update(c, x, x);
+	}
+	printf("%I64d\n", result);
+	//cout << result << endl;
+	//system("pause");
+	return 0;
+}
