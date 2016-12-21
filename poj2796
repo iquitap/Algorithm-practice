@@ -1,0 +1,97 @@
+//#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <stdio.h>
+#include <algorithm>
+#include <stdlib.h>
+#include <stack>
+
+#define LL long long
+#define MAX 1000000+10
+
+using namespace std;
+
+typedef pair <int, int> int_pair;
+stack <int_pair> s;
+LL a[MAX], sum[MAX];
+int l[MAX], r[MAX];
+int main()
+{
+	int n;
+	scanf("%d", &n);
+	sum[0] = 0;
+	for (int i = 1; i <= n; i++)
+	{
+		scanf("%I64d", &a[i]);
+		sum[i] = sum[i - 1] + a[i];
+		l[i] = r[i] = i;
+	}
+	while (!s.empty())
+		s.pop();
+	for (int i = 1; i <= n; i++)
+	{
+		if (s.empty())
+			s.push(make_pair(a[i], i));
+		else
+		{
+			while (!s.empty())
+			{
+				int_pair top = s.top();
+				if (a[i] >= top.first) //元素大于栈顶
+					break;
+				else                        //弹出所有小于a[i]的元素
+				{
+					s.pop();
+					r[top.second] = i - 1; //记录以过去的最小值能够向右延伸的最远的index
+				}
+			}
+			s.push(make_pair(a[i], i));
+		}
+	}
+	while (!s.empty())   //循环过后，栈内剩下的为一个递减序列（从先入往后入的方向看）,所以这些元素向右的延伸距离最远的index为n
+	{
+		int_pair top = s.top();
+		s.pop();
+		r[top.second] = n;
+	}
+	for (int i = n; i >= 1; i--)
+	{
+		if (s.empty())   //清空栈
+			s.push(make_pair(a[i], i));
+		else
+		{
+			while (!s.empty())
+			{
+				int_pair top = s.top();
+				if (a[i] >= top.first) //元素大于栈顶
+					break;
+				else //弹出所有大于a[i]的元素
+				{
+					s.pop();
+					l[top.second] = i + 1; //记录以过去的最小值能够向右延伸的最远的index
+				}
+			}
+			s.push(make_pair(a[i], i));
+		}
+	}
+	while (!s.empty())
+	{
+		int_pair top = s.top();
+		s.pop();
+		l[top.second] = 1;
+	}
+	LL ans = -1, temp;
+	int left_index, right_index;
+	for (int i = 1; i <= n; i++)
+	{
+		temp = (sum[r[i]] - sum[l[i]-1])*a[i];
+		if (ans < temp)
+		{
+			ans = temp;
+			left_index = l[i];
+			right_index = r[i];
+		}
+	}
+	printf("%I64d\n", ans);
+	printf("%d %d\n", left_index, right_index);
+	return 0;
+}
