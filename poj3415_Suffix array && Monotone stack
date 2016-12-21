@@ -1,0 +1,193 @@
+//#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <string.h>
+#include <string.h>
+#include <stdio.h>
+#include <stack>
+#define MAXN 200000+10
+#define LL long long
+using namespace std;
+
+
+int wa[MAXN], wb[MAXN], wv[MAXN], Ws[MAXN];
+int Rank[MAXN], height[MAXN], sa[MAXN];
+int s[MAXN];
+char str[MAXN];
+int len;
+
+inline bool cmp(int *r, int a, int b, int len)
+{
+	return r[a] == r[b] && r[a + len] == r[b + len];//下面那个约定除r[n-1]外所有的r[i]都大于0，r[n-1]=0就是为了防止这里数组越界
+}
+void getSa(int *r, int *sa, int n, int m) //r存放的字符串信息，sa为后缀数组，n为r的长度，m为字符串数据中的上限值,约定除r[n-1]外所有的r[i]都大于0，r[n-1]=0
+{
+	int i, j, p;
+	int *x = wa, *y = wb, *t; //x和y可参考PPT，可理解为用于生成后缀数组的二元组
+
+	for (i = 0; i<m; i++)    Ws[i] = 0;//初始化
+	for (i = 0; i<n; i++)    Ws[x[i] = r[i]]++;//x中暂时存放了所有的字符串信息数据（之后x会用去做别的功能）
+	//Ws[x[i]]中记录了m==r[i]的个数
+	for (i = 1; i<m; i++)    Ws[i] += Ws[i - 1]; //小于等于r[i]共有Ws[x[i]]个
+	for (i = n - 1; i >= 0; i--) sa[--Ws[x[i]]] = i; //小于等于r[i]共有Ws[x[i]]个，因此r[i]排在第Ws[x[i]]个
+	//i之所以从n-1开始往下循环，是为了保证在当字符串中有相等的字符串时，默认靠前的字符串更小一些
+	//eg.r[6]=r[7]=r[8]，则先求sa[8]，因为--Ws[x[8]]，所以sa[8]=sa[7]+1=sa[6]+2
+
+	//下面这层循环中p代表Rank值不用的字符串的数量，如果p达到n，那么各个字符串的大小关系就已经明了了。
+	//j代表当前待合并的字符串的长度，每次将两个长度为j的字符串合并成一个长度为2*j的字符串，当然如果包含字符串末尾具体则数值应另当别论，但思想是一样的。
+	//m同样代表基数排序的元素的取值范围
+	for (j = 1, p = 1; p<n; j *= 2, m = p)
+	{
+		//以下两行代码实现了对第二关键字的排序
+		//y[s]=t表示排在第s个的起点在t,即y[s]对第二关键字排序,但y[s]的值指向第一关键字的位置
+		for (p = 0, i = n - j; i<n; i++)  y[p++] = i;
+		//结合PPT可知，位置在第n-j至n的元素的第二关键字都为0，因此如果按第二关键字排序，必然这些元素都是排在前面的，即第p个
+		for (i = 0; i<n; i++)    if (sa[i] >= j)    y[p++] = sa[i] - j;
+		//变量j是当前每个小字符串的长度，y保存的是第二关键字的排序结果
+		//第二关键字基数排序完成后，y[]里存放的是按第二关键字排序的字符串下标 (???)
+
+
+		for (i = 0; i<n; i++)  wv[i] = x[y[i]];//这里相当于提取出每个字符串的第一关键字，放到wv[]里面是方便后面的使用
+
+		//以下四行代码是按第一关键字进行的基数排序,逻辑与前面的方法类似，但最后用第二关键字赋值而不是用i，从而求出新的sa的值
+		for (i = 0; i<m; i++) Ws[i] = 0;
+		for (i = 0; i<n; i++) Ws[wv[i]]++;
+		for (i = 1; i<m; i++) Ws[i] += Ws[i - 1];
+		for (i = n - 1; i >= 0; i--) sa[--Ws[wv[i]]] = y[i];
+
+		//下面两行就是计算合并之后的Rank值了，而合并之后的Rank值应该存在x[]里面，但我们计算的时候又必须用到上一层的Rank值，也就是现在x[]里面放的东西，如果我既要从x[]里面拿，又要向x[]里面放，怎么办？当然是先把x[]的东西放到另外一个数组里面，省得乱了。这里就是用交换指针的方式，高效实现了将x[]的东西“复制”到了y[]中。
+		for (t = x, x = y, y = t, p = 1, x[sa[0]] = 0, i = 1; i<n; i++)
+			x[sa[i]] = cmp(y, sa[i - 1], sa[i], j) ? p - 1 : p++;
+		//这里就是用x[]存储计算出的各字符串Rank的值了，记得我们前面说过，计算sa[]值的时候如果字符串相同是默认前面的更小的，但这里计算Rank的时候必须将相同的字符串看作有相同的Rank，要不然p==n之后就不会再循环了。
+	}
+}
+
+//实现的时候其实没有必要保存 h 数组，只须按照 h[1],h[2],……,h[n]的顺序计算即可。 (???)
+void calHeight(int *r, int *sa, int n)//height数组的值的有效范围是height[1]~height[n]其中height[1]=0
+{                                   //这里的n不带入最后的0，区分getSa中的n
+	int i, j, k = 0;
+	for (i = 1; i <= n; i++)   Rank[sa[i]] = i;
+	for (i = 0; i<n; height[Rank[i++]] = k)
+	for (k ? k-- : 0, j = sa[Rank[i] - 1]; r[i + k] == r[j + k]; k++); //???
+	return;
+}
+
+void test(int n)
+{
+	for (int i = 0; i < n; i++)
+		printf("%c", s[i]);
+	printf("\n");
+	for (int i = 0; i<n; i++)
+	{
+		printf("sa[%d]=%d\n", i, sa[i]);
+	}
+	for (int i = 0; i<n; i++)
+	{
+		printf("h[%d]=%d\n", i, height[i]);
+	}
+}
+
+int main()
+{
+	int n;
+	int i, k;
+	while (scanf("%d", &k) && k)
+	{
+		n = 0;
+		/*for (i = 1; i <= 2; i++)
+		{
+			scanf("%s", str + n);
+			for (; str[n] != '\0'; n++)
+				s[n] = str[n];
+			s[len = n++] = '#' + i;//确保分隔符的不同
+		}*/
+		scanf("%s", str);
+		for (; str[n] != '\0'; n++)
+			s[n] = str[n];
+		s[len = n++] = '#' ;//确保分隔符的不同
+		scanf("%s", str+n);
+		for (; str[n] != '\0'; n++)
+			s[n] = str[n];
+		s[n] = 0;//将最后的分隔符修改为0
+		n++;
+		//printf("n=%d\n",n);
+		getSa(s, sa, n, 255);
+		calHeight(s, sa, n - 1);
+		//test(n+1);
+		LL tot = 0;//记录解数
+		LL cnt;    //记录后缀数
+		LL sum = 0;
+		typedef pair <int, LL> stack_pair;   //第一个元素记录height[i]，第二个记录对应的解数
+		stack <stack_pair> st;
+		while (!st.empty())
+			st.pop();
+		for (int i = 1; i < n ; i++)     //循环选择遍历字符串A
+		{
+			if (height[i] >= k)
+			{
+				cnt = 0;             //记录当前height[i]对应的解数
+				if (sa[i - 1] < len)    //下标i-1在A字符串中
+				{
+					cnt++;
+					tot += height[i] - k + 1; //有当前允许后缀长度的解数
+				}
+				while (!st.empty())
+				{
+					stack_pair top = st.top();
+					if (height[i] > top.first)
+						break;
+					else
+					{
+						st.pop();
+						tot -= top.second*(top.first - height[i]);
+						cnt += top.second;
+					}
+				}
+				st.push(make_pair(height[i], cnt));
+				if (sa[i] > len)
+					sum += tot;
+			}
+			else //height[i] < k
+            {
+                tot=0;
+                while (!st.empty())
+                    st.pop();
+            }
+		}
+
+		for (int i = 1; i < n ; i++)     //循环选择遍历字符串B
+		{
+			if (height[i] >= k)
+			{
+				cnt = 0;             //记录当前height[i]对应的解数
+				if (sa[i - 1] > len)    //下标i-1在B字符串中
+				{
+					cnt++;
+					tot += height[i] - k + 1; //有当前允许后缀长度的解数
+				}
+				while (!st.empty())
+				{
+					stack_pair top = st.top();
+					if (height[i] > top.first)
+						break;
+					else
+					{
+						st.pop();
+						tot -= top.second*(top.first - height[i]);
+						cnt += top.second;
+					}
+				}
+				st.push(make_pair(height[i], cnt));
+				if (sa[i] < len)
+					sum += tot;
+			}
+			else //height[i] < k
+            {
+                tot=0;
+                while (!st.empty())
+                    st.pop();
+            }
+		}
+		printf("%I64d\n", sum);
+	}
+	return 0;
+}
