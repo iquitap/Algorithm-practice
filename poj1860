@@ -1,0 +1,90 @@
+//  Bellman_ford
+//  cin cout 对应数据结构错误会出现异常情况
+//
+//  main.cpp
+//  poj
+//
+//  Created by 周杨杰 on 2017/4/17.
+//  Copyright © 2017年 周杨杰. All rights reserved.
+//
+
+#include "main.hpp"
+#include <iostream>
+#include <math.h>
+#include <queue>
+#include <algorithm>
+#include <string>
+#include <vector>
+using namespace std;
+
+#define MAX 10000+10
+#define Inf 1e9
+typedef long long ll;
+
+int num_edge = 0;
+int n,m,s;
+double v;
+double d[MAX];
+int ans;
+struct Edge{
+    int u;
+    int v;
+    double r;
+    double c;
+    Edge(int u,int v,double r,double c):u(u),v(v),r(r),c(c) {num_edge++;}
+};
+vector <Edge> edge;
+bool relax(int i){
+    if(d[edge[i].v] < (d[edge[i].u]-edge[i].c)*edge[i].r)
+    {
+        d[edge[i].v] =  (d[edge[i].u]-edge[i].c)*edge[i].r;
+        return true;
+    }
+    return false;
+}
+
+
+bool Bellman_Ford(void){
+    int i,j,k;
+    memset(d,0,sizeof(d));
+    d[s] = v;
+    bool flag;
+    for(i=1; i < n;i++){
+        flag = false;
+        for(j = 0 ; j < edge.size() ;j++){
+            if(relax(j))
+            {
+                flag = true;
+            }
+        }
+        if(d[s] > v) return true;
+        if(!flag)   return false;
+    }
+    for(k=0;k<edge.size();k++){
+        if(relax(k))
+            return true;
+    }
+    return false;
+}
+int main(){
+    int i;
+    int a,b;
+    double r1,c1,r2,c2;
+    cin >> n >> m >> s >> v;
+    //scanf("%d%d%d%lf",&n,&m,&s,&v);
+    //cout << "m=" << m << endl;;
+    
+    for(i=0;i<m;i++){
+        //cout << "for test i=" << i << endl;
+        cin >> a >> b >> r1 >> c1 >> r2 >> c2;
+        edge.push_back(Edge(a,b,r1,c1));
+        edge.push_back(Edge(b,a,r2,c2));
+    }
+    
+    if(Bellman_Ford())
+        cout << "YES" << endl;
+    else
+        cout << "NO" << endl;
+    
+    return 0;
+}
