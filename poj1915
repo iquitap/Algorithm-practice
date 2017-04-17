@@ -1,0 +1,65 @@
+// bfs
+
+#include <iostream>
+#include <string.h>
+#include <algorithm>
+#include <math.h>
+#include <queue>
+#define MAX 300+5
+using namespace std;
+typedef long long ll;
+typedef pair <int,int> Point;
+
+queue <Point> que;
+int cot;
+Point sp,ep;
+int visit[MAX][MAX];
+//int mv[2][8] = {{-2,-2,-1,-1,1,1,2,2},{-1,1,-2,2,-2,2,-1,1}};
+int mv[8][2] = {{-2,-1},{-2,1},{-1,-2},{-1,2},{1,-2},{1,2},{2,-1},{2,1}};
+
+void bfs(int len)
+{
+    int i;
+    cot = 0;
+    Point head,temp;
+    memset(visit,0,sizeof(visit));
+    while(!que.empty())
+        que.pop();
+
+    visit[sp.first][sp.second] = 1;
+    que.push(sp);
+    while(!que.empty()){
+        int que_size = que.size();
+        while(que_size--){
+            head = que.front();
+            que.pop();
+            if(head.first == ep.first && head.second == ep.second)
+                return;
+            for(i = 0 ; i < 8 ; i++){
+                temp.first = head.first + mv[i][0];
+                temp.second = head.second + mv[i][1];
+                if(temp.first<0 | temp.first>=len | temp.second<0 | temp.second >= len)
+                    continue;
+
+                if(!visit[temp.first][temp.second]){
+                    visit[temp.first][temp.second] = 1;
+                    que.push(temp);
+                }
+            }
+        }
+        cot++;
+    }
+    return;
+}
+int main()
+{
+    int len,n;
+    cin >> n;
+    while(n--)
+    {
+        cin >> len >> sp.first >> sp.second >> ep.first >> ep.second;
+        bfs(len);
+        cout << cot << endl;
+    }
+    return 0;
+}
