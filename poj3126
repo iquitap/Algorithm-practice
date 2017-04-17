@@ -1,0 +1,101 @@
+//bfs
+
+#include <iostream>
+#include <math.h>
+#include <queue>
+#include <algorithm>
+#include <string>
+#define MAX 10000+10
+
+using namespace std;
+typedef long long ll;
+
+int cot;
+int isPrime[MAX];
+int visit[MAX];
+int possible;
+queue <int> que;
+void getPrime(void){
+    int i,j;
+    memset(isPrime,1,sizeof(isPrime));
+    for(i=1000;i<MAX;i++){
+        for(j=2;j<=sqrt((double)i);j++){
+            if(i%j == 0)
+            {
+                isPrime[i] = 0;
+                break;
+            }
+        }
+    }
+    return;
+}
+void dfs_help(int n){
+    if(isPrime[n] && !visit[n]){
+        visit[n] = 1;
+        que.push(n);
+        //cout << "push:" << n << endl;
+    }
+    return;
+}
+void dfs(int s,int e){
+    int head,temp;
+    int i;
+    memset(visit,0,sizeof(visit));
+    while(!que.empty())
+        que.pop();
+
+    visit[s] = 1;
+    cot = 0;
+    que.push(s);
+    possible = 0;
+    while(!que.empty()){
+        int que_size = que.size();
+        while(que_size--){
+            head = que.front();
+            //cout << "head=" << head << endl;
+            que.pop();
+            if(head == e)
+            {
+                possible = 1;
+                return ;
+            }
+
+            for(i=0;i<=9;i++){
+                if(i && i!=head/1000){
+                    temp = head%1000 + i*1000;
+                    dfs_help(temp);
+                }
+                if(i != (head%1000)/100){
+                    temp = head/1000*1000 + i*100 + head%100;
+                    dfs_help(temp);
+                }
+                if(i != (head%100)/10){
+                    temp = head/100*100 + i*10 + head%10;
+                    dfs_help(temp);
+                }
+                if(i != (head%10)){
+                    temp = head/10*10 + i;
+                    dfs_help(temp);
+                }
+            }
+        }
+        cot++;
+    }
+    return ;
+}
+int main()
+{
+    int n;
+    int s,e; //start,end
+    getPrime();
+    cin >> n;
+    while(n--){
+        cin >> s >> e;
+        dfs(s,e);
+        if(possible)
+            cout << cot << endl;
+        else
+            cout << "Impossible" << endl;
+    }
+    return 0;
+}
