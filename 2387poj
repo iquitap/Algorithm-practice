@@ -1,0 +1,75 @@
+//dijistra
+
+
+#include <iostream>
+#include <math.h>
+#include <queue>
+#include <algorithm>
+#include <string>
+#include <assert.h>
+
+#define MAX 1000+5
+#define Inf 1e9
+using namespace std;
+
+
+int t,n;
+int visit[MAX];
+int d[MAX][MAX];
+int f[MAX];
+void init(void){
+    for(int i = 1; i <= n;i++){
+        for(int j=1;j<= n;j++){
+            if(i==j)
+                d[i][j] = 0;
+            else
+                d[i][j] = Inf;
+        }
+    }
+    memset(visit,0,sizeof(visit));
+    return;
+}
+void add_edge(int a,int b,int c){
+    if(c < d[a][b])
+        d[a][b] = c;
+    return ;
+}
+
+void dijkstra(void){
+    int temp,pos;
+    for(int i = 1 ; i <= n ;i++){
+        f[i] = d[1][i];
+    }
+    visit[1] = 1;
+    assert(f[1] == 0);
+    for(int i = 1; i <= n ;i++){
+        temp = Inf;
+        for(int j = 1; j <= n;j++){
+            if(!visit[j] && f[j] < temp){
+                temp = f[j];
+                pos = j;
+            }
+        }
+        visit[pos] = 1;
+        for(int k = 1; k <= n ;k++){
+            if(!visit[k] && f[k] > f[pos] + d[pos][k]){
+                f[k] = f[pos] + d[pos][k];
+            }
+        }
+    }
+
+    return;
+}
+int main(){
+    cin >> t >> n;
+    init();
+    for(int i = 0 ; i < t ; i++){
+        int a,b,c;
+        cin >> a >> b >> c;
+        add_edge(a,b,c);
+        add_edge(b,a,c);
+    }
+    dijkstra();
+    cout << f[n] << endl;
+    return 0;
+}
